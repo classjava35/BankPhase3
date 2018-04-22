@@ -19,7 +19,7 @@ public class Logger {
 	 */
 	//Phase3 change to static
 	public static void log(Log log) {
-		System.out.println(log.getData());
+		System.out.println(log);
 	}
 
 	/**

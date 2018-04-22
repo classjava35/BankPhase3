@@ -1,5 +1,7 @@
 package core;
 
+import java.util.Arrays;
+
 import javax.security.auth.login.AccountNotFoundException;
 
 public abstract class Client {
@@ -11,7 +13,7 @@ public abstract class Client {
 	private Account[] accounts;
 	protected float commissionRate;
 	protected float interestRate;
-	private Logger logger ;
+	private Logger logger;
 
 	// CTOR
 	public Client(int id, String name, float balance) {
@@ -20,7 +22,7 @@ public abstract class Client {
 		this.name = name;
 		this.balance = balance;
 		accounts = new Account[5];
-		logger= new Logger("driverName");
+		logger = new Logger("driverName");
 
 	}
 
@@ -48,9 +50,9 @@ public abstract class Client {
 		return accounts;
 	}
 
-	public Account getAccounts(int index) {
+	public Account getAccount(int index) {
 		for (int i = 0; i < accounts.length; i++) {
-			if (i == index && accounts[i]!=null ) {
+			if (accounts[i].getId() == index) {
 				return accounts[i];
 			}
 		}
@@ -58,23 +60,32 @@ public abstract class Client {
 	}
 
 	public void addAccount(Account account) {
+		float client_balance = getBalance();
+		float bank_balance = Bank.getInstance().getBalance();
+		int client_id = this.getId();
 		for (int i = 0; i < accounts.length; i++) {
 			if (accounts[i] == null) {
 				accounts[i] = account; // add the account
-				// log the operation
-				Log log = new Log(System.currentTimeMillis(), this.id, "add account", account.getBalance());
-				logger.log(log);
-				//
+				//setBalance(client_balance + accounts[i].getBalance()); // add the account balance to the client balance
+				Bank.getInstance().setBalance(bank_balance+accounts[i].getBalance());// add the account balance to the Bank balance
 				break;
 			}
+			
 		}
+		// log the operation
+		Log log = new Log(System.currentTimeMillis(), account.getId(), "add account", account.getBalance());
+		logger.log(log);
+		//
+
 	}
 
 	public void removeAccount(Account account) {
 
 		for (int i = 0; i < accounts.length; i++) {
 			if (accounts[i] != null && accounts[i].equals(account)) {
-				setBalance(getBalance()+accounts[i].getBalance());
+				float accountBalance = accounts[i].getBalance();
+				//setBalance(getBalance() - accountBalance);// remove the account balance
+				Bank.getInstance().setBalance(Bank.getInstance().getBalance() - accountBalance);// remove the account balance from the Bank balance
 				accounts[i] = null; // remove the account
 				// log the operation
 				Log log = new Log(System.currentTimeMillis(), this.id, "remove account", this.getBalance());
@@ -86,16 +97,19 @@ public abstract class Client {
 	}
 
 	public void deposit(float amount) {
-		float commision = amount * commissionRate;
-		setBalance(getBalance()+(amount - commision));
-		Log log = new Log(System.currentTimeMillis(), getId(), "deposit money + commissionRate ", amount);
+		float bank_balance = Bank.getInstance().getBalance();
+		setBalance(getBalance() + amount); //update the Client Balance
+		Bank.getInstance().setBalance(bank_balance+ amount); //update the Bank Balance
+		Log log = new Log(System.currentTimeMillis(), getId(), "deposit money", amount);
 		logger.log(log);
 	}
 
 	public void withdraw(float amount) {
 		float commision = amount * commissionRate;
-		setBalance(getBalance()-(amount - commision));
-		Bank.addcommision(commision);
+		float bank_balance = Bank.getInstance().getBalance();
+		Bank.addcommision(commision);//Update the static commisionSum in Bank Class
+		setBalance(getBalance() - (amount - commision));
+		Bank.getInstance().setBalance(bank_balance- (amount - commision));
 		Log log = new Log(System.currentTimeMillis(), getId(), "withdraw money + commissionRate ", amount);
 		logger.log(log);
 	}
@@ -103,9 +117,10 @@ public abstract class Client {
 	public void autoUpdateAccounts() {
 		for (int i = 0; i < accounts.length; i++) {
 			if (accounts[i] != null) {
-				accounts[i].setBalance(accounts[i].getBalance()*(interestRate+1)); // add the interestRate
+				accounts[i].setBalance(accounts[i].getBalance() * (interestRate + 1)); // add the interestRate
 				// log the operation
-				Log log = new Log(System.currentTimeMillis(), accounts[i].getId(), "add the interestRate to the account ", accounts[i].getBalance()*(interestRate+1));
+				Log log = new Log(System.currentTimeMillis(), accounts[i].getId(),
+						"add the interestRate to the account ", accounts[i].getBalance() * (interestRate + 1));
 				logger.log(log);
 				//
 			}
@@ -122,7 +137,9 @@ public abstract class Client {
 		return balance;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
@@ -133,7 +150,9 @@ public abstract class Client {
 		return result;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
@@ -149,6 +168,5 @@ public abstract class Client {
 			return false;
 		return true;
 	}
-	
-	
+
 }

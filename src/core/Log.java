@@ -33,20 +33,17 @@ public class Log {
 		this.amount = amount;
 	}
 
-	public String getData() {
+
+	@Override
+	public String toString() {
 		//Get todays date and time
 		SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//dd/MM/yyyy
 	    Date now = new Date();
 	    String strDate = sdfDate.format(now);
-		return "Log [timestamp=" + strDate + ", clientId=" + clientId + ", description=" + description + ", amount="
-				+ amount + "]";
+		return "Log [timestamp=" + strDate +" , "+ (description != null ? "description=" + description : "") + " , " + clientId + ", " +amount+ "]";
 	}
-
-	@Override
-	public String toString() {
-		return "Log [timestamp=" + timestamp + ", clientId=" + clientId + ", "
-				+ (description != null ? "description=" + description : "") + "]";
-	}
+	
+	
 	
 	
 
